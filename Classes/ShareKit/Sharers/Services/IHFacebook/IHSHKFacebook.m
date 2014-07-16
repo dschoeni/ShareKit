@@ -51,28 +51,19 @@
 - (BOOL) send
 {
 	// Make sure that the item has minimum requirements
-	if (![self validateItem])
-		return NO;
-    
-    [self sendDidStart];
-    
-
-    return YES;
-}
-
-- (void) doSend {
+	if (![self validateItem]) return NO;
     
     NSURL* url = self.item.URL;
     
     FBLinkShareParams* shareParams = [FBLinkShareParams new];
-    shareParams.link = [url absoluteURL];
+    shareParams.link = url;
     
     if ([FBDialogs canPresentShareDialogWithParams:shareParams]) {
         
         [FBDialogs presentShareDialogWithParams:shareParams clientState:nil handler:^(FBAppCall *call, NSDictionary *results, NSError *error) {
             NSLog(@"Native FB-Share done");
             
-            if (error == nil) {
+            if (error == nil && results != NULL) {
                 [self sendDidFinish];
             } else {
                 [self sendDidFailWithError:error];
@@ -81,25 +72,28 @@
         
     } else {
         
-        NSMutableDictionary *params =
-        [NSMutableDictionary dictionaryWithObjectsAndKeys:
-         [url absoluteURL], @"link",
-         nil];
+        NSDictionary *params = @{@"link": [url absoluteString]};
         
         // Invoke the dialog
         [FBWebDialogs presentFeedDialogModallyWithSession:nil parameters:params handler: ^(FBWebDialogResult result, NSURL *resultURL, NSError *error) {
             NSLog(@"Web FB-Share done");
             
-            if (error == nil) {
+            if (error == nil && resultURL != NULL) {
                 [self sendDidFinish];
             } else {
                 [self sendDidFailWithError:error];
             }
+            
         }];
         
     }
     
+    [self sendDidStart];
+    [self hideActivityIndicator];
+    
+    return YES;
 }
+
 
 
 @end
