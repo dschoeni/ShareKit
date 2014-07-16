@@ -39,6 +39,11 @@
     return YES;
 }
 
++ (BOOL)requiresAuthentication
+{
+	return NO;
+}
+
 #pragma mark -
 #pragma mark Implementation
 
